@@ -1,6 +1,9 @@
 #!/usr/bin/php
 <?php
+if (PHP_SAPI !== 'cli') exit;
 
+
+$sweetiekey = 'SWKEY';
 function prompt($message = 'prompt: ', $hidden = false) {
   fwrite(STDERR, $message );
   if (strncasecmp(PHP_OS, 'WIN', 3) === 0) {
@@ -25,11 +28,11 @@ function sedreplace($file, $before, $after){
 }
 // print_r($argv);
 if (!isset($argv[1])){
-  echo "USAGE(1): ./managepass.phpcli master\n";
+  echo "USAGE(1): ./managepass.cli.php master\n";
   echo "          (update \$masterpasshash in makefolder.php )\n\n";
-  echo "USAGE(2): ./managepass.phpcli swkey\n"; 
+  echo "USAGE(2): ./managepass.cli.php swkey\n"; 
   echo "          (update \$sweetiekey in makefolder.php and login.php)\n\n"; 
-  echo "USAGE(3): ./managepass.phpcli check\n"; 
+  echo "USAGE(3): ./managepass.cli.php check\n"; 
   echo "          (display password from Folder name)\n\n"; 
   exit;
   
@@ -48,12 +51,13 @@ if (!isset($argv[1])){
   } else if ($argv[1]=="swkey"){
     $swkey = prompt("Input swkey(salt): ",false);
     sedreplace("makefolder.php","SWKEY",$swkey);
+    sedreplace("managepass.cli.php","SWKEY",$swkey); //this file
     sedreplace("_swmain/login.php","SWKEY",$swkey);
 
     
   } else if ($argv[1]=="check"){
     $basefolder = prompt("Input Folder name: ",false);
-    $pass = substr(hash("sha256",$basefolder."THESWKEY"),strlen($basefolder),12);
+    $pass = substr(hash("sha256",$basefolder.$sweetiekey),strlen($basefolder),12);
     echo "BaseFolder: {$basefolder}\n";
     echo "     Pass : {$pass}\n\n";
   }
